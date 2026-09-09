@@ -141,5 +141,11 @@ button { font-family: inherit; }
 }
 
 @media (max-width: 760px) {
-  :root { --gutter: 6%; --edge: 14px; }
+  :root {
+    --gutter: 6%;
+    --edge: 14px;
+    --fs-h1: 46px;
+    --fs-h2: 26px;
+    --fs-h3: 26px;
+  }
 }

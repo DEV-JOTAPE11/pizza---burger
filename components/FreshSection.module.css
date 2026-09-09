@@ -43,11 +43,12 @@
 
 @media (max-width: 700px) {
   .fresh { padding: 14px 0 22px; }
-  .lead { font-size: 12px; max-width: 300px; }
-  .orange1 { left: -2%; width: 12%; }
-  .chili1  { left: 6%; top: 8%; width: 8%; }
+  .lead { font-size: 11.5px; max-width: 260px; line-height: 1.6; }
+  .cta { margin-top: 13px; }
+  .orange1 { left: -3%; top: 62%; width: 13%; }
+  .chili1  { left: 4%;  top: 8%;  width: 7%; }
   .leaf1   { display: none; }
-  .orange2 { right: -3%; width: 13%; }
-  .chili2  { right: 5%; top: 82%; width: 8%; }
+  .orange2 { right: -4%; top: 6%; width: 14%; }
+  .chili2  { right: 3%;  top: 68%; width: 7%; }
   .leaf2   { display: none; }
 }

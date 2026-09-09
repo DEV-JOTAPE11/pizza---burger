@@ -162,12 +162,14 @@
 }
 
 @media (max-width: 700px) {
-  .hero { height: 600px; }
-  .copy { top: 15%; width: 78%; max-width: none; }
+  .hero { height: 620px; }
+  .copy { top: 13%; width: 86%; max-width: none; }
+  .eyebrow { font-size: 10px; margin-bottom: 8px; }
   .title { text-shadow: 0 6px 30px rgba(0, 0, 0, 0.85); }
-  .lead { max-width: 260px; }
-  .burger { width: 66%; right: -8%; top: 36%; }
-  .pizza { width: 105%; left: -12%; bottom: -1%; transform: scaleY(0.6); }
-  .wood { height: 28%; }
-  .tomato { right: 4%; bottom: -1%; width: 9%; }
+  .lead { max-width: 200px; font-size: 12px; }
+  .cta { height: 40px; padding: 0 22px; font-size: 13px; }
+  .burger { width: 62%; right: -10%; top: 38%; }
+  .pizza { width: 108%; left: -14%; bottom: 3%; transform: scaleY(0.6); }
+  .wood { height: 30%; }
+  .tomato { right: 4%; bottom: 1%; width: 9%; }
 }
