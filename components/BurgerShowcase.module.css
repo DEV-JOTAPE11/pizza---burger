@@ -1,0 +1,69 @@
+.show {
+  position: relative;
+  height: clamp(300px, 36.8vw, 505px);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(72% 96% at 50% 34%, #F6AF2C 0%, #F0A118 46%, #E2900E 78%, #D28306 100%);
+}
+
+/* Textura sutil de tinta/impressão sobre o laranja */
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+  background-image: var(--grain);
+  background-size: 340px 340px;
+}
+
+.tearTop { position: absolute; top: -1px; left: 0; right: 0; z-index: 4; }
+.tearBottom { position: absolute; bottom: -1px; left: 0; right: 0; z-index: 4; }
+
+.burger {
+  position: absolute;
+  z-index: 3;
+}
+.burger img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 16px 16px rgba(122, 62, 4, 0.42));
+}
+/* Sombra de contato no "chão" laranja */
+.burger::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -4%;
+  height: 12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(120, 58, 3, 0.5), rgba(120, 58, 3, 0) 78%);
+  z-index: -1;
+}
+
+.b1 { left: 5%;    bottom: 12%; width: 32%; }
+.b2 { left: 31%;   bottom: 1%;  width: 38%; z-index: 4; }
+.b3 { left: 57.5%; bottom: 13%; width: 34%; }
+
+/* Ingredientes decorativos nas laterais */
+.tomatoL { left: 2%;   top: 52%; width: 5.6%; --rot: 10deg; }
+.tomatoR { right: 1%;  top: 28%; width: 5.4%; --rot: -12deg; }
+.orangeL { left: 4%;   bottom: 2%; width: 7.2%; --rot: -20deg; }
+.orangeR { right: 6%;  bottom: 1%; width: 7.6%; --rot: 22deg; }
+.chiliR  { right: 0.5%; top: 62%; width: 4.6%; --rot: -34deg; }
+.leafL   { left: 8.5%; top: 22%; width: 4.4%; --rot: 16deg; }
+
+@media (max-width: 700px) {
+  .show { height: 300px; }
+  .b1 { left: -4%;  bottom: 20%; width: 40%; }
+  .b2 { left: 30%;  bottom: 8%;  width: 46%; }
+  .b3 { left: 68%;  bottom: 22%; width: 42%; }
+  .tomatoL { left: -1%; top: 58%; width: 9%; }
+  .tomatoR { right: -2%; top: 16%; width: 9%; }
+  .orangeL { left: 1%; bottom: 1%; width: 12%; }
+  .orangeR { right: 2%; bottom: 0; width: 12%; }
+  .chiliR, .leafL { display: none; }
+}

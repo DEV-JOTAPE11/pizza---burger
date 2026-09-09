@@ -1,0 +1,53 @@
+.fresh {
+  position: relative;
+  background: var(--cream);
+  padding: 8px 0 16px;
+  text-align: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.inner {
+  position: relative;
+  z-index: 2;
+}
+
+.title {
+  font-size: var(--fs-h2);
+  line-height: 0.95;
+  color: var(--ink);
+}
+
+.lead {
+  margin: 11px auto 0;
+  max-width: 400px;
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--ink-soft);
+}
+
+.cta {
+  margin-top: 15px;
+  height: 36px;
+  padding: 0 24px;
+  font-size: 12.5px;
+}
+
+/* Ingredientes editoriais nas bordas */
+.orange1 { left: 4%;  top: 46%; width: 6.6%;  --rot: -14deg; }
+.chili1  { left: 13%; top: 34%; width: 4.4%;  --rot: 24deg; }
+.leaf1   { left: 8%;  top: 78%; width: 4.6%;  --rot: 12deg; }
+.orange2 { right: 3%; top: 12%; width: 7.4%;  --rot: 18deg; }
+.chili2  { right: 14%; top: 20%; width: 4.2%; --rot: -30deg; }
+.leaf2   { right: 6%; top: 72%; width: 4.4%;  --rot: -18deg; }
+
+@media (max-width: 700px) {
+  .fresh { padding: 14px 0 22px; }
+  .lead { font-size: 12px; max-width: 300px; }
+  .orange1 { left: -2%; width: 12%; }
+  .chili1  { left: 6%; top: 8%; width: 8%; }
+  .leaf1   { display: none; }
+  .orange2 { right: -3%; width: 13%; }
+  .chili2  { right: 5%; top: 82%; width: 8%; }
+  .leaf2   { display: none; }
+}

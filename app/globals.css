@@ -1,0 +1,145 @@
+/* ============================================================
+   DESIGN TOKENS — extraídos da referência visual
+   ============================================================ */
+:root {
+  /* Paleta */
+  --wine-950: #1E0605;
+  --wine-900: #2B0808;
+  --wine-800: #3F0D0A;
+  --red-800: #8E1A11;
+  --red-700: #B02318;
+  --red-600: #C9251A;
+  --red-cta: #DF3727;
+  --red-cta-hi: #EE4A32;
+  --orange: #F0A118;
+  --orange-deep: #E08B0D;
+  --gold: #FFB518;
+  --cream: #FAF3DF;
+  --cream-2: #F5ECD4;
+  --ink: #15120D;
+  --ink-soft: #6B5F52;
+  --white: #FFFDF5;
+
+  /* Estrutura */
+  --stage: 1360px;
+  --gutter: 10.5%;
+  --edge: 24px;
+
+  /* Ritmo tipográfico */
+  --fs-h1: clamp(46px, 8.3vw, 92px);
+  --fs-h2: clamp(30px, 5.5vw, 60px);
+  --fs-h3: clamp(27px, 4.3vw, 47px);
+  --fs-body: 15px;
+  --fs-small: 13px;
+  --fs-nav: 12.5px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(115% 85% at 6% -6%, #F0B23E 0%, #E08B2B 18%, #CE5A22 34%, #B32A1A 52%, #7C160F 72%, #470D09 88%, #2C0706 100%);
+  background-attachment: fixed;
+  color: var(--ink);
+  font-family: var(--font-body), "Inter", system-ui, -apple-system, sans-serif;
+  font-size: var(--fs-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display), "Archivo Black", Impact, sans-serif;
+  font-weight: 400;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+}
+
+p { margin: 0; }
+
+a { color: inherit; text-decoration: none; }
+
+img { max-width: 100%; }
+
+button { font-family: inherit; }
+
+/* ---- Canvas central: a "peça publicitária" vertical ---- */
+.canvas {
+  width: 100%;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--cream);
+}
+
+/* Faixa central onde a composição visual vive — o fundo continua full-bleed */
+.stage {
+  position: absolute;
+  inset: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100% - var(--edge) * 2, var(--stage));
+  z-index: 2;
+  pointer-events: none;
+}
+.stage > * { pointer-events: auto; }
+
+.container {
+  width: 100%;
+  max-width: var(--stage);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---- Botões ---- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  background: var(--red-cta);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border-radius: 4px;
+  transition: filter 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+  box-shadow: 0 6px 16px rgba(150, 26, 13, 0.34);
+}
+.btn:hover { filter: brightness(1.08); transform: scale(1.02); }
+.btn:active { transform: scale(0.99); }
+.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+.btn--pill {
+  background: var(--gold);
+  color: #3A1B02;
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+/* ---- Elementos decorativos flutuantes ---- */
+.floater {
+  position: absolute;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 8px 14px rgba(60, 20, 6, 0.28));
+  z-index: 3;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .drift { animation: drift 9s ease-in-out infinite; }
+  .drift--b { animation-duration: 11s; animation-delay: -3s; }
+  .drift--c { animation-duration: 13s; animation-delay: -6s; }
+}
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--rot, 0deg)); }
+  50% { transform: translate3d(0, -9px, 0) rotate(calc(var(--rot, 0deg) + 3deg)); }
+}
+
+@media (max-width: 760px) {
+  :root { --gutter: 6%; --edge: 14px; }
+}

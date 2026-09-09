@@ -1,0 +1,173 @@
+.hero {
+  position: relative;
+  height: clamp(545px, 62.4vw, 848px);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(46% 52% at 71% 30%, rgba(214, 61, 32, 0.62) 0%, rgba(214, 61, 32, 0) 68%),
+    radial-gradient(70% 80% at 16% 6%, rgba(126, 24, 15, 0.72) 0%, rgba(126, 24, 15, 0) 72%),
+    linear-gradient(163deg, #55110B 0%, #3A0A07 38%, #260605 72%, #180403 100%);
+}
+
+/* Bokeh quente da fotografia gastronômica */
+.bokeh {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.55;
+  background:
+    radial-gradient(circle at 12% 22%, rgba(255, 138, 46, 0.30) 0, transparent 9%),
+    radial-gradient(circle at 30% 12%, rgba(255, 96, 40, 0.22) 0, transparent 6%),
+    radial-gradient(circle at 62% 8%, rgba(255, 170, 60, 0.20) 0, transparent 7%),
+    radial-gradient(circle at 88% 18%, rgba(255, 110, 40, 0.24) 0, transparent 8%),
+    radial-gradient(circle at 78% 46%, rgba(255, 150, 50, 0.16) 0, transparent 6%),
+    radial-gradient(circle at 6% 52%, rgba(255, 120, 44, 0.18) 0, transparent 7%),
+    radial-gradient(circle at 45% 30%, rgba(255, 90, 36, 0.14) 0, transparent 5%);
+  filter: blur(2px);
+}
+
+/* Vinheta escura para elevar o contraste do texto */
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(16, 3, 2, 0.72) 0%, rgba(16, 3, 2, 0.18) 42%, rgba(16, 3, 2, 0) 62%),
+    linear-gradient(180deg, rgba(16, 3, 2, 0.42) 0%, rgba(16, 3, 2, 0) 26%);
+}
+
+/* Superfície de madeira sob os alimentos */
+.wood {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32%;
+  z-index: 1;
+  overflow: hidden;
+}
+.wood img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 62%;
+  filter: brightness(0.66) saturate(1.2) contrast(1.06);
+}
+.wood::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, #250605 0%, rgba(37, 6, 5, 0.86) 10%, rgba(43, 9, 6, 0.5) 34%, rgba(50, 12, 6, 0.24) 64%, rgba(24, 5, 4, 0.55) 100%),
+    radial-gradient(60% 120% at 50% 0%, rgba(255, 130, 50, 0.14), transparent 70%);
+}
+
+/* ---------- Bloco de texto ---------- */
+.copy {
+  position: absolute;
+  z-index: 5;
+  left: var(--gutter);
+  top: 22.5%;
+  width: 40%;
+  max-width: 430px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #F2A08A;
+  margin-bottom: 12px;
+}
+.eyebrow::before,
+.eyebrow::after {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: rgba(242, 160, 138, 0.7);
+}
+.eyebrow::after { width: 14px; }
+
+.title {
+  font-size: var(--fs-h1);
+  line-height: 0.85;
+  color: var(--white);
+  text-shadow: 0 6px 26px rgba(0, 0, 0, 0.55);
+}
+.title em {
+  display: block;
+  font-style: normal;
+  color: var(--gold);
+}
+
+.lead {
+  margin-top: 16px;
+  max-width: 300px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: rgba(255, 246, 235, 0.62);
+}
+
+.cta {
+  margin-top: 22px;
+  height: 44px;
+  padding: 0 30px;
+  font-size: 14px;
+}
+
+/* ---------- Fotografia ---------- */
+.burger {
+  position: absolute;
+  z-index: 4;
+  right: 4%;
+  top: 13%;
+  width: 46%;
+  max-width: 520px;
+  filter: drop-shadow(-18px 26px 34px rgba(10, 2, 1, 0.72));
+}
+.burger img { width: 100%; height: auto; display: block; }
+
+.pizza {
+  position: absolute;
+  z-index: 3;
+  left: 6%;
+  bottom: 7%;
+  width: 76%;
+  transform-origin: bottom center;
+  transform: scaleY(0.56);
+  filter: drop-shadow(0 22px 26px rgba(8, 2, 1, 0.7));
+}
+.pizza img { width: 100%; height: auto; display: block; }
+
+.tomato { right: 6.5%; bottom: -3%; width: 5.4%; z-index: 6; --rot: -8deg; }
+
+/* Borda rasgada de transição para a seção creme */
+.tear {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  z-index: 5;
+}
+
+@media (max-width: 900px) {
+  .copy { width: 46%; top: 21%; }
+  .lead { font-size: 12.5px; }
+}
+
+@media (max-width: 700px) {
+  .hero { height: 600px; }
+  .copy { top: 15%; width: 78%; max-width: none; }
+  .title { text-shadow: 0 6px 30px rgba(0, 0, 0, 0.85); }
+  .lead { max-width: 260px; }
+  .burger { width: 66%; right: -8%; top: 36%; }
+  .pizza { width: 105%; left: -12%; bottom: -1%; transform: scaleY(0.6); }
+  .wood { height: 28%; }
+  .tomato { right: 4%; bottom: -1%; width: 9%; }
+}
