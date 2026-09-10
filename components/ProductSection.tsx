@@ -45,19 +45,19 @@ export default function ProductSection() {
   return (
     <section className={s.products} id="pedir" aria-labelledby="products-title">
       <div className="container">
-        <p className={s.intro}>
+        <p className={s.intro} data-anim="up">
         Combinações preparadas com ingredientes selecionados para entregar muito
         sabor em cada pedido, do primeiro ao último bocado.
       </p>
       </div>
 
       <div className={`container ${s.head}`}>
-        <h2 className={s.title} id="products-title">
+        <h2 className={s.title} id="products-title" data-anim="chars">
           Mais Pedidos
         </h2>
-        <div className={s.dots} aria-hidden="true">
+        <div className={s.dots} aria-hidden="true" data-anim-group="0.07" data-anim-start="top 92%">
           {DOTS.map((c) => (
-            <i key={c} style={{ "--c": c } as React.CSSProperties} />
+            <i key={c} style={{ "--c": c } as React.CSSProperties} data-anim="pop" />
           ))}
         </div>
       </div>
@@ -67,7 +67,8 @@ export default function ProductSection() {
         <TornEdge className={s.redTear} variant="D" color="var(--red-600)" height={62} flip />
       </div>
 
-      <div className={`container ${s.grid}`}>
+      {/* Os cards sobem em cascata quando a grade entra na tela. */}
+      <div className={`container ${s.grid}`} data-anim-group="0.12">
         {PRODUCTS.map((p) => (
           <ProductCard key={p.name} {...p} />
         ))}

@@ -25,8 +25,10 @@ export default function BurgerShowcase() {
 
       <TornEdge className={s.tearTop} variant="B" color="var(--cream)" height={52} flip />
 
-      <div className="stage">
-      {DECOR.map((d) => (
+      {/* Um gatilho só para a faixa inteira: os hambúrgueres sobem em
+          cascata e os recortes brotam logo depois. */}
+      <div className="stage" data-anim-group="0.13">
+      {DECOR.map((d, i) => (
         <Image
           key={d.cls}
           className={`floater drift ${d.drift} ${s[d.cls]}`}
@@ -36,11 +38,14 @@ export default function BurgerShowcase() {
           height={d.h}
           aria-hidden="true"
           loading="lazy"
+          data-anim="pop"
+          /* O atraso do primeiro da família vale para a família toda. */
+          data-anim-delay={i === 0 ? "0.35" : undefined}
         />
       ))}
 
       {BURGERS.map((b) => (
-        <div key={b.cls} className={`${s.burger} ${s[b.cls]}`}>
+        <div key={b.cls} className={`${s.burger} ${s[b.cls]}`} data-anim="rise">
           <Image src={b.src} alt={b.alt} width={b.w} height={b.h} loading="lazy" sizes="40vw" />
         </div>
       ))}

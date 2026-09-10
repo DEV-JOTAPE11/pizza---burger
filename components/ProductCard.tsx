@@ -12,7 +12,7 @@ export type Product = {
 
 export default function ProductCard({ name, desc, price, src, w, h }: Product) {
   return (
-    <article className={s.card}>
+    <article className={s.card} data-anim="up">
       <div className={s.thumb}>
         <Image
           src={src}

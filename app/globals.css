@@ -135,10 +135,69 @@ button { font-family: inherit; }
   .drift--b { animation-duration: 11s; animation-delay: -3s; }
   .drift--c { animation-duration: 13s; animation-delay: -6s; }
 }
+/* A flutuação usa `translate`/`rotate`, e não o `transform` inteiro: assim
+   ela convive com a animação de entrada em CSS e com o GSAP, que escrevem
+   no `transform`. As três se somam em vez de uma apagar a outra. */
 @keyframes drift {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--rot, 0deg)); }
-  50% { transform: translate3d(0, -9px, 0) rotate(calc(var(--rot, 0deg) + 3deg)); }
+  0%, 100% { translate: 0 0; rotate: var(--rot, 0deg); }
+  50% { translate: 0 -9px; rotate: calc(var(--rot, 0deg) + 3deg); }
 }
+
+/* ============================================================
+   ANIMAÇÕES DE ENTRADA
+   A classe `.motion` entra no <html> por um script inline, antes da
+   primeira pintura, e só quando há JS e o sistema não pede menos
+   movimento. Sem ela nada se esconde: a página aparece inteira.
+   ============================================================ */
+
+/* ---- Herói: CSS puro, para a entrada começar já na primeira pintura,
+        sem esperar a hidratação do React ---- */
+.motion .enter {
+  animation: enter-up 0.9s cubic-bezier(0.22, 0.9, 0.24, 1) var(--d, 0s) backwards;
+}
+.motion .enter--down { animation-name: enter-down; }
+.motion .enter--blur { animation-name: enter-blur; animation-duration: 1.1s; }
+.motion .enter--rise { animation-name: enter-rise; animation-duration: 1.15s; }
+.motion .enter--pop {
+  animation: enter-pop 0.8s cubic-bezier(0.2, 1.35, 0.35, 1) var(--d, 0s) backwards;
+}
+/* Recorte que entra e depois fica flutuando: as duas animações precisam ser
+   declaradas juntas, porque `animation` é uma propriedade só. */
+.motion .floater.enter--pop.drift {
+  animation:
+    enter-pop 0.8s cubic-bezier(0.2, 1.35, 0.35, 1) var(--d, 0s) backwards,
+    drift 9s ease-in-out calc(var(--d, 0s) + 0.8s) infinite;
+}
+
+@keyframes enter-up {
+  from { opacity: 0; transform: translate3d(0, 26px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes enter-down {
+  from { opacity: 0; transform: translate3d(0, -22px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes enter-blur {
+  from { opacity: 0; filter: blur(16px); transform: translate3d(0, 20px, 0); }
+  to   { opacity: 1; filter: blur(0); transform: none; }
+}
+@keyframes enter-rise {
+  from { opacity: 0; transform: translate3d(0, 58px, 0) scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes enter-pop {
+  from { opacity: 0; transform: scale(0.5) rotate(-16deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---- Abaixo da dobra: GSAP + ScrollTrigger (ver PageMotion.tsx).
+        O CSS só guarda o estado inicial até o controlador assumir. ---- */
+.motion [data-anim] { opacity: 0; }
+
+/* Caracteres do título revelado. Spans inline puros: sem caixa própria não
+   mexem na quebra de linha nem no kerning — só a opacidade e o desfoque
+   mudam, e o texto ocupa o mesmo espaço com ou sem animação. */
+.mchar { will-change: opacity, filter; }
 
 @media (max-width: 760px) {
   :root {
