@@ -3,6 +3,8 @@ import Hero from "@/components/Hero";
 import FreshSection from "@/components/FreshSection";
 import BurgerShowcase from "@/components/BurgerShowcase";
 import ProductSection from "@/components/ProductSection";
+import OrderCta from "@/components/OrderCta";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -13,6 +15,8 @@ export default function Home() {
       <FreshSection />
       <BurgerShowcase />
       <ProductSection />
+      <OrderCta />
+      <Footer />
     </main>
   );
 }

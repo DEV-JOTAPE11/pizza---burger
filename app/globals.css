@@ -71,7 +71,10 @@ button { font-family: inherit; }
   width: 100%;
   margin: 0;
   position: relative;
-  overflow: hidden;
+  /* "clip" e não "hidden": os dois cortam o que escapa na horizontal,
+     mas "hidden" transformaria a página inteira num contêiner de
+     rolagem e o herói preso no topo (position: sticky) nunca grudaria. */
+  overflow-x: clip;
   background: var(--cream);
 }
 

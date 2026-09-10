@@ -1,6 +1,5 @@
 import TornEdge from "./TornEdge";
 import ProductCard, { type Product } from "./ProductCard";
-import Footer from "./Footer";
 import { GRUNGE } from "./texture";
 import s from "./ProductSection.module.css";
 
@@ -73,8 +72,6 @@ export default function ProductSection() {
           <ProductCard key={p.name} {...p} />
         ))}
       </div>
-
-      <Footer />
     </section>
   );
 }

@@ -1,7 +1,7 @@
 .products {
   position: relative;
   background: var(--cream);
-  padding: 46px 0 0;
+  padding: 46px 0 40px;
   overflow: hidden;
   isolation: isolate;
 }
@@ -56,6 +56,10 @@
   position: absolute;
   inset: 44px 0 0;
   background:
+    /* Fecha a faixa numa cor chapada, que é onde a seção de chamada logo
+       abaixo começa: sem isso o degradê radial mudaria de tom ao longo da
+       borda e deixaria uma linha visível entre as duas. */
+    linear-gradient(180deg, rgba(69, 9, 6, 0) 44%, #450906 100%),
     radial-gradient(90% 130% at 26% -12%, #D93122 0%, #C4251A 34%, #A01A11 60%, #6E120C 84%, #450906 100%);
 }
 /* Pinceladas irregulares sobre o vermelho */

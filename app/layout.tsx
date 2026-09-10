@@ -37,7 +37,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={`${display.variable} ${body.variable} ${script.variable}`}>
+    <html
+      lang="pt-BR"
+      className={`${display.variable} ${body.variable} ${script.variable}`}
+      /* O script inline abaixo acrescenta a classe `motion` antes do React
+         hidratar — é uma diferença esperada entre servidor e cliente. */
+      suppressHydrationWarning
+    >
       <head>
         {/* Liga o estado inicial das animações antes da primeira pintura.
             Sem JS — ou com `prefers-reduced-motion` — a classe nunca entra

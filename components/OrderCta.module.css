@@ -1,0 +1,229 @@
+/* Faixa vermelha de chamada, logo abaixo dos cards.
+   O topo começa exatamente na cor em que o fundo vermelho da seção de
+   produtos termina, para que as duas leiam como um campo vermelho só. */
+.cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding-block: clamp(52px, 7vw, 96px);
+  background:
+    /* O brilho quente morre antes da borda de cima: o topo precisa ser a
+       mesma cor chapada em que a faixa vermelha anterior termina. */
+    radial-gradient(56% 74% at 76% 52%, rgba(226, 82, 48, 0.72) 0%, rgba(226, 82, 48, 0) 66%),
+    linear-gradient(180deg, #450906 0%, #7C160F 20%, #A81C12 48%, #86170F 76%, var(--wine-800) 100%);
+}
+
+/* Grunge de impressão sobre o vermelho chapado */
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--grunge);
+  background-size: 700px 700px;
+  opacity: 0.42;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(28px, 4.5vw, 64px);
+}
+
+/* ---------- Coluna de texto ---------- */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 14px;
+}
+.eyebrow::before {
+  content: "";
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--gold);
+}
+
+.title {
+  font-size: var(--fs-h2);
+  line-height: 0.92;
+  color: var(--white);
+  text-shadow: 0 6px 22px rgba(28, 3, 2, 0.5);
+}
+.title em {
+  display: block;
+  font-style: normal;
+  color: var(--gold);
+}
+
+.text {
+  margin-top: 18px;
+  max-width: 430px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: rgba(255, 242, 228, 0.74);
+}
+
+/* Lista de vantagens em duas colunas */
+.perks {
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+  max-width: 460px;
+}
+.perks li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: rgba(255, 244, 231, 0.9);
+}
+.check {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: #3A1B02;
+  display: grid;
+  place-items: center;
+}
+.check svg { width: 9px; height: 9px; }
+
+.actions {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.primary {
+  height: 46px;
+  padding: 0 28px;
+  font-size: 14px;
+  background: var(--gold);
+  color: #3A1B02;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: 0 8px 20px rgba(28, 3, 2, 0.42);
+}
+
+/* Botão secundário: só o contorno, para não competir com o principal */
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  height: 46px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 240, 226, 0.4);
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 244, 231, 0.92);
+  transition: border-color 0.22s ease, color 0.22s ease, background 0.22s ease;
+}
+.ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(255, 181, 24, 0.08);
+}
+.ghost:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+/* ---------- Coluna da fotografia ---------- */
+.art {
+  position: relative;
+  justify-self: center;
+  width: 100%;
+  max-width: 560px;
+}
+/* Brilho quente atrás do hambúrguer, para descolá-lo do fundo */
+.art::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 92%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 181, 24, 0.34), rgba(255, 181, 24, 0) 72%);
+  z-index: -1;
+}
+.art img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 26px 34px rgba(24, 3, 2, 0.62));
+}
+
+/* Selo de preço girado sobre a foto */
+.badge {
+  position: absolute;
+  right: 2%;
+  top: 6%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  width: 108px;
+  height: 108px;
+  padding: 0 10px;
+  border-radius: 50%;
+  rotate: -12deg;
+  background: var(--red-cta);
+  border: 2px dashed rgba(255, 244, 231, 0.55);
+  box-shadow: 0 10px 22px rgba(24, 3, 2, 0.45);
+  text-align: center;
+}
+.badgeTop {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgba(255, 244, 231, 0.86);
+}
+.badgePrice {
+  font-family: var(--font-display), "Archivo Black", Impact, sans-serif;
+  font-size: 23px;
+  line-height: 1;
+  color: var(--white);
+}
+.badgeFoot {
+  font-size: 8.5px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: rgba(255, 244, 231, 0.78);
+}
+
+@media (max-width: 860px) {
+  .inner { grid-template-columns: 1fr; gap: 30px; }
+  .art { order: -1; max-width: 400px; }
+  .text { max-width: none; }
+  .perks { max-width: none; }
+}
+
+@media (max-width: 560px) {
+  .perks { grid-template-columns: 1fr; }
+  .primary, .ghost { height: 42px; font-size: 13px; }
+  .badge { width: 86px; height: 86px; padding: 0 7px; }
+  .badgePrice { font-size: 18px; }
+  .badgeTop, .badgeFoot { font-size: 7.5px; }
+  .actions { margin-top: 22px; }
+}

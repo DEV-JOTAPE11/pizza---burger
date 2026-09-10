@@ -1,77 +1,63 @@
+/* ============================================================
+   HERÓI DE ROLAGEM
+   A seção é alta e vazia; quem aparece é o <div> preso no topo, com
+   um canvas do tamanho da tela. A altura da seção é o "comprimento"
+   da animação: quanto mais alta, mais devagar o hambúrguer se monta.
+   192 quadros em 460vh dão cerca de 20 px de rolagem por quadro.
+   ============================================================ */
 .hero {
   position: relative;
-  height: clamp(545px, 62.4vw, 848px);
+  height: 460vh;
+  background: var(--wine-950);
+}
+
+/* Sem animação pedida pelo sistema, a seção volta a ser uma tela só. */
+.still {
+  height: auto;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   isolation: isolate;
-  background:
-    radial-gradient(46% 52% at 71% 30%, rgba(214, 61, 32, 0.62) 0%, rgba(214, 61, 32, 0) 68%),
-    radial-gradient(70% 80% at 16% 6%, rgba(126, 24, 15, 0.72) 0%, rgba(126, 24, 15, 0) 72%),
-    linear-gradient(163deg, #55110B 0%, #3A0A07 38%, #260605 72%, #180403 100%);
+  /* Fundo enquanto os primeiros quadros não chegam — e faixa lateral em
+     telas muito largas. As cores saem do próprio JPEG. */
+  background: linear-gradient(180deg, #1B0102 0%, #440104 46%, #5E0205 74%, #6E1607 100%);
 }
 
-/* Bokeh quente da fotografia gastronômica */
-.bokeh {
+.canvas {
   position: absolute;
   inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
   z-index: 0;
-  opacity: 0.55;
-  background:
-    radial-gradient(circle at 12% 22%, rgba(255, 138, 46, 0.30) 0, transparent 9%),
-    radial-gradient(circle at 30% 12%, rgba(255, 96, 40, 0.22) 0, transparent 6%),
-    radial-gradient(circle at 62% 8%, rgba(255, 170, 60, 0.20) 0, transparent 7%),
-    radial-gradient(circle at 88% 18%, rgba(255, 110, 40, 0.24) 0, transparent 8%),
-    radial-gradient(circle at 78% 46%, rgba(255, 150, 50, 0.16) 0, transparent 6%),
-    radial-gradient(circle at 6% 52%, rgba(255, 120, 44, 0.18) 0, transparent 7%),
-    radial-gradient(circle at 45% 30%, rgba(255, 90, 36, 0.14) 0, transparent 5%);
-  filter: blur(2px);
 }
 
-/* Vinheta escura para elevar o contraste do texto */
+/* Escurece o lado do texto sem apagar o hambúrguer. */
 .vignette {
   position: absolute;
   inset: 0;
   z-index: 1;
+  pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(16, 3, 2, 0.72) 0%, rgba(16, 3, 2, 0.18) 42%, rgba(16, 3, 2, 0) 62%),
-    linear-gradient(180deg, rgba(16, 3, 2, 0.42) 0%, rgba(16, 3, 2, 0) 26%);
+    linear-gradient(90deg, rgba(11, 2, 2, 0.72) 0%, rgba(11, 2, 2, 0.42) 34%, rgba(11, 2, 2, 0) 62%),
+    linear-gradient(180deg, rgba(11, 2, 2, 0.66) 0%, rgba(11, 2, 2, 0) 22%),
+    linear-gradient(0deg, rgba(11, 2, 2, 0.55) 0%, rgba(11, 2, 2, 0) 26%);
 }
 
-/* Superfície de madeira sob os alimentos */
-.wood {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 32%;
-  z-index: 1;
-  overflow: hidden;
-}
-.wood img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 62%;
-  filter: brightness(0.66) saturate(1.2) contrast(1.06);
-}
-.wood::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, #250605 0%, rgba(37, 6, 5, 0.86) 10%, rgba(43, 9, 6, 0.5) 34%, rgba(50, 12, 6, 0.24) 64%, rgba(24, 5, 4, 0.55) 100%),
-    radial-gradient(60% 120% at 50% 0%, rgba(255, 130, 50, 0.14), transparent 70%);
-}
-
-/* ---------- Bloco de texto ---------- */
-.copy {
+/* ---------- Abertura ---------- */
+.intro {
   position: absolute;
   z-index: 5;
   left: var(--gutter);
-  top: 22.5%;
-  width: 40%;
-  max-width: 430px;
+  top: 27%;
+  width: 42%;
+  max-width: 440px;
+  will-change: opacity, transform;
 }
 
 .eyebrow {
@@ -98,7 +84,7 @@
   font-size: var(--fs-h1);
   line-height: 0.85;
   color: var(--white);
-  text-shadow: 0 6px 26px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 6px 26px rgba(0, 0, 0, 0.6);
 }
 .title em {
   display: block;
@@ -108,10 +94,10 @@
 
 .lead {
   margin-top: 16px;
-  max-width: 300px;
+  max-width: 320px;
   font-size: 13.5px;
   line-height: 1.65;
-  color: rgba(255, 246, 235, 0.62);
+  color: rgba(255, 246, 235, 0.66);
 }
 
 .cta {
@@ -121,55 +107,165 @@
   font-size: 14px;
 }
 
-/* ---------- Fotografia ---------- */
-.burger {
+/* ---------- Cartões de cada camada ----------
+   Os cinco ficam no DOM o tempo todo, um por cima do outro, e só
+   trocam de opacidade: assim o texto já está medido e posicionado
+   quando a rolagem chega nele, sem reflow no meio da animação.
+   `visibility` entra junto para o cartão apagado não roubar o clique
+   do que está por baixo. */
+.card {
   position: absolute;
-  z-index: 4;
-  right: 4%;
-  top: 13%;
-  width: 46%;
-  max-width: 520px;
-  filter: drop-shadow(-18px 26px 34px rgba(10, 2, 1, 0.72));
+  z-index: 5;
+  left: var(--gutter);
+  top: 50%;
+  width: 42%;
+  max-width: 440px;
+  padding: 26px 28px 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 181, 24, 0.22);
+  background:
+    linear-gradient(180deg, rgba(46, 8, 6, 0.78) 0%, rgba(21, 3, 3, 0.84) 100%);
+  box-shadow: 0 22px 48px rgba(8, 1, 1, 0.5);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, calc(-50% + 22px), 0);
+  transition:
+    opacity 0.5s ease,
+    transform 0.6s cubic-bezier(0.22, 0.9, 0.24, 1),
+    visibility 0s linear 0.5s;
 }
-.burger img { width: 100%; height: auto; display: block; }
+.card[data-on] {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, -50%, 0);
+  transition-delay: 0s, 0s, 0s;
+}
 
-.pizza {
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 246, 235, 0.55);
+}
+.step span {
+  font-family: var(--font-display), "Archivo Black", Impact, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0;
+  color: var(--gold);
+}
+
+.cardTitle {
+  margin-top: 12px;
+  font-size: clamp(24px, 2.5vw, 34px);
+  line-height: 1.02;
+  color: var(--white);
+}
+
+.cardText {
+  margin-top: 14px;
+  font-size: 14px;
+  line-height: 1.68;
+  color: rgba(255, 246, 235, 0.68);
+}
+
+.cardCta {
+  margin-top: 20px;
+  height: 42px;
+  padding: 0 26px;
+  font-size: 13.5px;
+}
+
+/* ---------- Régua da rolagem ---------- */
+.hud {
   position: absolute;
-  z-index: 3;
-  left: 6%;
-  bottom: 7%;
-  width: 76%;
-  transform-origin: bottom center;
-  transform: scaleY(0.56);
-  filter: drop-shadow(0 22px 26px rgba(8, 2, 1, 0.7));
+  left: var(--edge);
+  right: var(--edge);
+  bottom: 78px;
+  z-index: 5;
+  pointer-events: none;
 }
-.pizza img { width: 100%; height: auto; display: block; }
 
-.tomato { right: 6.5%; bottom: -3%; width: 5.4%; z-index: 6; --rot: -8deg; }
+.track {
+  height: 1px;
+  background: rgba(255, 246, 235, 0.16);
+}
+.bar {
+  height: 100%;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
 
-/* Borda rasgada de transição para a seção creme */
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 246, 235, 0.46);
+}
+.hint { color: var(--gold); }
+
+/* Borda rasgada de transição para a seção creme: mora no fim da seção
+   alta, então só encosta na tela quando a montagem termina. */
 .tear {
   position: absolute;
   left: 0;
   right: 0;
   bottom: -1px;
-  z-index: 5;
+  z-index: 6;
 }
 
-@media (max-width: 900px) {
-  .copy { width: 46%; top: 21%; }
-  .lead { font-size: 12.5px; }
+@media (max-width: 1024px) {
+  .hero { height: 400vh; }
+  .intro { width: 50%; }
+  .card { width: 50%; padding: 22px 22px 24px; }
 }
 
-@media (max-width: 700px) {
-  .hero { height: 620px; }
-  .copy { top: 13%; width: 86%; max-width: none; }
-  .eyebrow { font-size: 10px; margin-bottom: 8px; }
-  .title { text-shadow: 0 6px 30px rgba(0, 0, 0, 0.85); }
-  .lead { max-width: 200px; font-size: 12px; }
-  .cta { height: 40px; padding: 0 22px; font-size: 13px; }
-  .burger { width: 62%; right: -10%; top: 38%; }
-  .pizza { width: 108%; left: -14%; bottom: 3%; transform: scaleY(0.6); }
-  .wood { height: 30%; }
-  .tomato { right: 4%; bottom: 1%; width: 9%; }
+/* Abaixo daqui vale o recorte 3:4: o hambúrguer ocupa a base da tela e
+   todo o texto sobe para a faixa vermelha de cima. */
+@media (max-width: 760px) {
+  .hero { height: 340vh; }
+
+  .vignette {
+    background:
+      linear-gradient(180deg, rgba(11, 2, 2, 0.8) 0%, rgba(11, 2, 2, 0.34) 30%, rgba(11, 2, 2, 0) 52%),
+      linear-gradient(0deg, rgba(11, 2, 2, 0.5) 0%, rgba(11, 2, 2, 0) 22%);
+  }
+
+  .intro {
+    top: 11%;
+    width: auto;
+    right: var(--gutter);
+    max-width: none;
+  }
+  .lead { max-width: 260px; font-size: 12.5px; margin-top: 12px; }
+  .cta { margin-top: 16px; height: 40px; padding: 0 22px; font-size: 13px; }
+
+  .card {
+    top: 10.5%;
+    right: var(--gutter);
+    width: auto;
+    max-width: none;
+    padding: 16px 18px 18px;
+    transform: translate3d(0, 20px, 0);
+  }
+  .card[data-on] { transform: none; }
+
+  .cardTitle { font-size: 25px; }
+  .cardText { margin-top: 10px; font-size: 12.5px; line-height: 1.6; }
+  .cardCta { margin-top: 14px; height: 38px; padding: 0 20px; font-size: 12.5px; }
+
+  /* Encostada no chão: mais acima a régua cairia em cima do pão. */
+  .hud { bottom: 22px; }
+  .meta { font-size: 9px; letter-spacing: 0.16em; }
 }

@@ -1,103 +1,403 @@
-import Image from "next/image";
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+import {
+  INTRO_FADE_END,
+  READY_AT,
+  SCENES,
+  SEQUENCES,
+  WIDE_QUERY,
+  framePath,
+} from "@/lib/burgerFrames";
+import { prefersReducedMotion } from "@/lib/motion";
 import TornEdge from "./TornEdge";
 import s from "./Hero.module.css";
 
 /**
- * A entrada do herói é feita em CSS puro, e não pelo GSAP: ela precisa
- * começar na primeira pintura, antes da hidratação do React, senão a
- * primeira tela ficaria em branco esperando o JavaScript. Cada elemento
- * carrega o seu atraso em `--d`, e a classe `.motion` no <html> é quem
- * autoriza tudo isso a rodar.
+ * Herói de rolagem: a seção tem várias telas de altura e o que fica preso
+ * na viewport é um <canvas>. A posição da rolagem dentro da seção vira um
+ * número de 0 a 1, e esse número escolhe o quadro do hambúrguer — a
+ * montagem anda para frente e para trás no ritmo de quem lê.
+ *
+ * Três decisões que sustentam o resto do arquivo:
+ *
+ * 1. O laço é um `requestAnimationFrame` contínuo, e não um ouvinte de
+ *    `scroll`. O Lenis interpola a rolagem no ticker do GSAP; ler a
+ *    posição a cada quadro pega essa interpolação, e não os saltos do
+ *    evento nativo. O laço só roda com a seção na tela.
+ *
+ * 2. O que muda a cada quadro — opacidade do título, barra de progresso —
+ *    é escrito direto no DOM por refs. Só o cartão de texto visível é
+ *    estado do React, porque ele troca cinco vezes na rolagem inteira.
+ *
+ * 3. Os quadros chegam num carrossel de oito por vez, em ordem. Enquanto o
+ *    índice pedido não chegou, desenha-se o vizinho mais próximo que já
+ *    veio: dá para rolar desde o começo, só menos fluido.
  */
 export default function Hero({ children }: { children?: React.ReactNode }) {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const stickyRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const introRef = useRef<HTMLDivElement | null>(null);
+  const barRef = useRef<HTMLDivElement | null>(null);
+
+  const imagesRef = useRef<(HTMLImageElement | null)[]>([]);
+  const frameRef = useRef(-1);
+  const progressRef = useRef(-1);
+
+  const [mode, setMode] = useState<"wide" | "tall" | null>(null);
+  const [reduced, setReduced] = useState(false);
+  const [pct, setPct] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [active, setActive] = useState(-1);
+
+  const seq = mode ? SEQUENCES[mode] : null;
+
+  /* ---------- Enquadramento ---------- */
+
+  /**
+   * Desenha um quadro na área presa à tela sem nunca cortar o hambúrguer.
+   *
+   * A regra é uma só: encaixa pela largura e apoia na base — o hambúrguer
+   * fica de pé no chão da viewport — e, se assim ele não couber na altura,
+   * encolhe até caber e centraliza. Um `cover` seria mais simples, mas
+   * comeria o pão de cima justamente nas telas largas e baixas.
+   *
+   * A sobra é preenchida esticando a própria fileira (ou coluna) de borda
+   * do JPEG. Como o fundo do quadro é um degradê vermelho liso, dois
+   * pixels esticados continuam exatamente a mesma cor: a emenda não
+   * aparece, e não há cor chumbada no código para sair do lugar se o
+   * vídeo um dia for trocado.
+   */
+  const paint = useCallback((img: HTMLImageElement) => {
+    const cvs = canvasRef.current;
+    const ctx = cvs?.getContext("2d");
+    if (!cvs || !ctx || !img.naturalWidth) return;
+
+    const cw = cvs.width;
+    const ch = cvs.height;
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+
+    let dw = cw;
+    let dh = (cw * ih) / iw;
+    let dx = 0;
+    let dy = ch - dh;
+
+    if (dh > ch) {
+      dh = ch;
+      dw = (ch * iw) / ih;
+      dx = (cw - dw) / 2;
+      dy = 0;
+    }
+
+    ctx.clearRect(0, 0, cw, ch);
+
+    /* Margens primeiro; o quadro entra por cima e cobre a emenda. A
+       amostra é tirada dois pixels para dentro: a última fileira de um
+       JPEG costuma carregar sujeira da compressão, e esticá-la deixaria
+       uma faixa escura na lateral. */
+    if (dy > 0) {
+      ctx.drawImage(img, 0, 2, iw, 2, dx, 0, dw, Math.ceil(dy) + 1);
+    }
+    if (dx > 0) {
+      const edge = Math.ceil(dx) + 1;
+      ctx.drawImage(img, 2, 0, 2, ih, 0, dy, edge, dh);
+      ctx.drawImage(img, iw - 4, 0, 2, ih, cw - edge, dy, edge, dh);
+    }
+
+    ctx.drawImage(img, dx, dy, dw, dh);
+  }, []);
+
+  /** Desenha o índice pedido — ou o vizinho mais próximo que já chegou. */
+  const drawIndex = useCallback(
+    (index: number) => {
+      const imgs = imagesRef.current;
+      let img = imgs[index] ?? null;
+      for (let i = index - 1; i >= 0 && !img; i--) img = imgs[i] ?? null;
+      for (let i = index + 1; i < imgs.length && !img; i++) img = imgs[i] ?? null;
+      if (img) paint(img);
+    },
+    [paint],
+  );
+
+  const resize = useCallback(() => {
+    const cvs = canvasRef.current;
+    const host = stickyRef.current;
+    if (!cvs || !host) return;
+
+    // Acima de 2× o ganho visual some e o custo de pintura dobra.
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = host.clientWidth;
+    const h = host.clientHeight;
+    if (!w || !h) return;
+
+    cvs.width = Math.round(w * dpr);
+    cvs.height = Math.round(h * dpr);
+    cvs.style.width = `${w}px`;
+    cvs.style.height = `${h}px`;
+
+    drawIndex(frameRef.current >= 0 ? frameRef.current : 0);
+  }, [drawIndex]);
+
+  /* ---------- Qual conjunto de quadros ---------- */
+
+  useEffect(() => {
+    setReduced(prefersReducedMotion());
+
+    const mq = window.matchMedia(WIDE_QUERY);
+    const apply = () => {
+      setMode(mq.matches ? "wide" : "tall");
+    };
+    apply();
+
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  /* ---------- Carregamento ---------- */
+
+  useEffect(() => {
+    if (!seq) return;
+
+    let cancelled = false;
+    const imgs: (HTMLImageElement | null)[] = new Array(seq.count).fill(null);
+    imagesRef.current = imgs;
+    frameRef.current = -1;
+    progressRef.current = -1;
+
+    const load = (i: number, onSettle: () => void) => {
+      const img = new Image();
+      img.decoding = "async";
+      const settle = () => {
+        if (cancelled) return;
+        if (img.naturalWidth) imgs[i] = img;
+        onSettle();
+      };
+      img.onload = settle;
+      img.onerror = settle;
+      img.src = framePath(seq, i + 1);
+    };
+
+    // Sem animação pedida, o herói é uma tela só: basta o quadro final.
+    if (reduced) {
+      const last = seq.count - 1;
+      load(last, () => {
+        setPct(100);
+        setReady(true);
+        frameRef.current = last;
+        drawIndex(last);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    let next = 0;
+    let done = 0;
+    let shown = -1;
+
+    /* Oito por vez, em ordem: os primeiros quadros ficam prontos em
+       segundos e a rolagem já responde, em vez de esperar a sequência
+       inteira descer. */
+    const pump = () => {
+      if (cancelled) return;
+      const i = next++;
+      if (i >= seq.count) return;
+
+      load(i, () => {
+        done++;
+        const p = Math.round((done / seq.count) * 100);
+        if (p !== shown) {
+          shown = p;
+          setPct(p);
+        }
+        if (done === Math.min(READY_AT, seq.count)) setReady(true);
+        // O quadro que estava sendo aproximado por um vizinho agora existe.
+        if (i === frameRef.current || frameRef.current < 0) drawIndex(i);
+        pump();
+      });
+    };
+
+    for (let k = 0; k < 8; k++) pump();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [seq, reduced, drawIndex]);
+
+  /* ---------- Medidas ---------- */
+
+  useEffect(() => {
+    resize();
+    const host = stickyRef.current;
+    // No celular a barra do navegador entra e sai e a altura muda sem que
+    // exista um evento `resize` — daí o observador, e não o ouvinte.
+    const ro = new ResizeObserver(resize);
+    if (host) ro.observe(host);
+    return () => ro.disconnect();
+  }, [resize]);
+
+  /* ---------- Laço da rolagem ---------- */
+
+  useEffect(() => {
+    if (!seq || reduced) return;
+
+    let raf = 0;
+    let running = false;
+
+    const tick = () => {
+      raf = requestAnimationFrame(tick);
+
+      const section = sectionRef.current;
+      const host = stickyRef.current;
+      if (!section || !host) return;
+
+      const span = section.offsetHeight - host.offsetHeight;
+      const top = section.getBoundingClientRect().top;
+      const p = span <= 0 ? 0 : Math.min(1, Math.max(0, -top / span));
+
+      // Parado, não há nada a repintar.
+      if (Math.abs(p - progressRef.current) < 0.0001) return;
+      progressRef.current = p;
+
+      const index = Math.min(seq.count - 1, Math.round(p * (seq.count - 1)));
+      if (index !== frameRef.current) {
+        frameRef.current = index;
+        drawIndex(index);
+      }
+
+      if (introRef.current) {
+        const o = Math.max(0, 1 - p / INTRO_FADE_END);
+        introRef.current.style.opacity = String(o);
+        introRef.current.style.transform = `translate3d(0, ${(1 - o) * -18}px, 0)`;
+      }
+
+      if (barRef.current) barRef.current.style.transform = `scaleX(${p})`;
+
+      let current = -1;
+      for (let i = 0; i < SCENES.length; i++) {
+        if (p >= SCENES[i].show && p <= SCENES[i].hide) {
+          current = i;
+          break;
+        }
+      }
+      setActive((prev) => (prev === current ? prev : current));
+    };
+
+    /* O laço só existe com o herói na tela: passada a primeira dobra, ele
+       para de disputar quadros com as animações do resto da página. */
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !running) {
+          running = true;
+          raf = requestAnimationFrame(tick);
+        } else if (!entry.isIntersecting && running) {
+          running = false;
+          cancelAnimationFrame(raf);
+        }
+      },
+      { rootMargin: "10% 0px" },
+    );
+    if (sectionRef.current) io.observe(sectionRef.current);
+
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [seq, reduced, drawIndex]);
+
+  const scene = active >= 0 ? SCENES[active] : null;
+
   return (
-    <section className={s.hero} aria-labelledby="hero-title">
-      <div className={s.bokeh} aria-hidden="true" />
-
-      <div className={s.wood} aria-hidden="true">
-        <Image
-          src="/assets/wood.jpg"
-          alt=""
-          width={1800}
-          height={1200}
-          priority
-          sizes="100vw"
+    <section
+      ref={sectionRef}
+      className={`${s.hero} ${reduced ? s.still : ""}`}
+      aria-labelledby="hero-title"
+    >
+      <div ref={stickyRef} className={s.sticky}>
+        <canvas
+          ref={canvasRef}
+          className={s.canvas}
+          role="img"
+          aria-label="Hambúrguer artesanal sendo montado camada por camada: pão brioche, duas carnes com cheddar, bacon, tomate e alface"
         />
-      </div>
 
-      <div className={s.vignette} aria-hidden="true" />
+        <div className={s.vignette} aria-hidden="true" />
 
-      {children}
+        {children}
 
-      <div className="stage">
-        <div className={s.copy}>
-          <p
-            className={`enter ${s.eyebrow}`}
-            style={{ "--d": "0.15s" } as React.CSSProperties}
-          >
-            Feito para dar fome
-          </p>
-          <h1
-            className={`enter enter--blur ${s.title}`}
-            id="hero-title"
-            style={{ "--d": "0.25s" } as React.CSSProperties}
-          >
-            <em>Pizza &amp;</em>
-            Burger
-          </h1>
-          <p
-            className={`enter ${s.lead}`}
-            style={{ "--d": "0.62s" } as React.CSSProperties}
-          >
-            Ingredientes frescos, sabores marcantes e aquele pedido que você vai
-            querer repetir.
-          </p>
-          <a
-            className={`btn enter ${s.cta}`}
-            href="#pedir"
-            style={{ "--d": "0.76s" } as React.CSSProperties}
-          >
-            Pedir Agora
-          </a>
+        <div className="stage">
+          <div ref={introRef} className={s.intro}>
+            <p
+              className={`enter ${s.eyebrow}`}
+              style={{ "--d": "0.15s" } as React.CSSProperties}
+            >
+              Feito para dar fome
+            </p>
+            <h1
+              className={`enter enter--blur ${s.title}`}
+              id="hero-title"
+              style={{ "--d": "0.25s" } as React.CSSProperties}
+            >
+              <em>Pizza &amp;</em>
+              Burger
+            </h1>
+            <p
+              className={`enter ${s.lead}`}
+              style={{ "--d": "0.62s" } as React.CSSProperties}
+            >
+              Role a página e monte, camada por camada, o hambúrguer que sai
+              da nossa chapa.
+            </p>
+            <a
+              className={`btn enter ${s.cta}`}
+              href="#pedir"
+              style={{ "--d": "0.76s" } as React.CSSProperties}
+            >
+              Pedir Agora
+            </a>
+          </div>
+
+          {!reduced &&
+            SCENES.map((item, i) => (
+              <article
+                key={item.id}
+                className={s.card}
+                data-on={i === active ? "" : undefined}
+                aria-hidden={i === active ? undefined : "true"}
+              >
+                <p className={s.step}>
+                  <span>{item.step}</span>
+                  {item.kicker}
+                </p>
+                <h2 className={s.cardTitle}>{item.title}</h2>
+                <p className={s.cardText}>{item.text}</p>
+                {item.cta && (
+                  <a className={`btn ${s.cardCta}`} href="#pedir">
+                    {item.cta}
+                  </a>
+                )}
+              </article>
+            ))}
         </div>
 
-        {/* A animação vai na imagem, não no wrapper: é o wrapper que carrega
-            o `scaleY` da composição, e um `transform` animado o apagaria. */}
-        <div className={s.pizza}>
-          <Image
-            className="enter enter--rise"
-            style={{ "--d": "0.3s" } as React.CSSProperties}
-            src="/assets/pizza-hero.png"
-            alt="Pizza artesanal recém-saída do forno sobre a mesa de madeira"
-            width={1143}
-            height={630}
-            priority
-            sizes="(max-width: 700px) 105vw, 1000px"
-          />
-        </div>
-
-        <div className={s.burger}>
-          <Image
-            className="enter enter--rise"
-            style={{ "--d": "0.45s" } as React.CSSProperties}
-            src="/assets/burger-hero.png"
-            alt="Hambúrguer artesanal com dois hambúrgueres, queijo cheddar, alface e tomate"
-            width={1300}
-            height={1413}
-            priority
-            sizes="(max-width: 700px) 66vw, 580px"
-          />
-        </div>
-
-        <Image
-          className={`floater drift enter--pop ${s.tomato}`}
-          style={{ "--d": "1s" } as React.CSSProperties}
-          src="/assets/tomato.png"
-          alt=""
-          width={360}
-          height={377}
-          aria-hidden="true"
-        />
+        {!reduced && (
+          <div className={s.hud} aria-hidden="true">
+            <div className={s.track}>
+              <div ref={barRef} className={s.bar} />
+            </div>
+            <div className={s.meta}>
+              <span>
+                Camada {scene ? scene.step : "00"} / 0{SCENES.length}
+              </span>
+              <span className={s.hint}>
+                {ready ? "Role para montar ↓" : `Preparando a chapa… ${pct}%`}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <TornEdge className={s.tear} variant="A" color="var(--cream)" height={58} />
