@@ -4,13 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   INTRO_FADE_END,
-  READY_AT,
   SCENES,
   SEQUENCES,
   WIDE_QUERY,
   framePath,
 } from "@/lib/burgerFrames";
 import { prefersReducedMotion } from "@/lib/motion";
+import { buildJob, play, prime, type Job } from "@/lib/reveal";
 import TornEdge from "./TornEdge";
 import s from "./Hero.module.css";
 
@@ -40,7 +40,9 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
   const stickyRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const introRef = useRef<HTMLDivElement | null>(null);
-  const barRef = useRef<HTMLDivElement | null>(null);
+
+  const sceneRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const jobsRef = useRef<Job[][]>([]);
 
   const imagesRef = useRef<(HTMLImageElement | null)[]>([]);
   const frameRef = useRef(-1);
@@ -48,8 +50,6 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
 
   const [mode, setMode] = useState<"wide" | "tall" | null>(null);
   const [reduced, setReduced] = useState(false);
-  const [pct, setPct] = useState(0);
-  const [ready, setReady] = useState(false);
   const [active, setActive] = useState(-1);
 
   const seq = mode ? SEQUENCES[mode] : null;
@@ -184,8 +184,6 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
     if (reduced) {
       const last = seq.count - 1;
       load(last, () => {
-        setPct(100);
-        setReady(true);
         frameRef.current = last;
         drawIndex(last);
       });
@@ -195,8 +193,6 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
     }
 
     let next = 0;
-    let done = 0;
-    let shown = -1;
 
     /* Oito por vez, em ordem: os primeiros quadros ficam prontos em
        segundos e a rolagem já responde, em vez de esperar a sequência
@@ -207,13 +203,6 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
       if (i >= seq.count) return;
 
       load(i, () => {
-        done++;
-        const p = Math.round((done / seq.count) * 100);
-        if (p !== shown) {
-          shown = p;
-          setPct(p);
-        }
-        if (done === Math.min(READY_AT, seq.count)) setReady(true);
         // O quadro que estava sendo aproximado por um vizinho agora existe.
         if (i === frameRef.current || frameRef.current < 0) drawIndex(i);
         pump();
@@ -238,6 +227,38 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
     if (host) ro.observe(host);
     return () => ro.disconnect();
   }, [resize]);
+
+  /* ---------- Entrada do texto de cada camada ----------
+     O mesmo repertório da seção de baixo: título revelado caractere a
+     caractere e o resto subindo. A diferença é que aqui a entrada se
+     repete — a rolagem passa pela camada quantas vezes quiser. */
+
+  /* Preparo, uma vez só: `buildJob` reescreve o título em spans, e ler o
+     mesmo elemento de novo quebraria o texto duas vezes. */
+  useEffect(() => {
+    if (reduced) return;
+    jobsRef.current = sceneRefs.current.map((el) => {
+      if (!el) return [];
+      const jobs = Array.from(
+        el.querySelectorAll<HTMLElement>("[data-anim]"),
+      ).map(buildJob);
+      // Já no ponto de partida: quando a camada acender, não existe um
+      // quadro com o texto inteiro na tela antes de a entrada começar.
+      jobs.forEach(prime);
+      return jobs;
+    });
+  }, [reduced]);
+
+  useEffect(() => {
+    if (reduced || active < 0) return;
+    const jobs = jobsRef.current[active];
+    if (!jobs?.length) return;
+
+    const tweens = jobs.map((job) => play(job));
+    // Trocou de camada no meio da entrada: a anterior para onde está e
+    // some com o bloco, em vez de continuar escrevendo por baixo.
+    return () => tweens.forEach((tween) => tween.kill());
+  }, [active, reduced]);
 
   /* ---------- Laço da rolagem ---------- */
 
@@ -274,8 +295,6 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
         introRef.current.style.transform = `translate3d(0, ${(1 - o) * -18}px, 0)`;
       }
 
-      if (barRef.current) barRef.current.style.transform = `scaleX(${p})`;
-
       let current = -1;
       for (let i = 0; i < SCENES.length; i++) {
         if (p >= SCENES[i].show && p <= SCENES[i].hide) {
@@ -308,8 +327,6 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
     };
   }, [seq, reduced, drawIndex]);
 
-  const scene = active >= 0 ? SCENES[active] : null;
-
   return (
     <section
       ref={sectionRef}
@@ -329,75 +346,66 @@ export default function Hero({ children }: { children?: React.ReactNode }) {
         {children}
 
         <div className="stage">
-          <div ref={introRef} className={s.intro}>
-            <p
-              className={`enter ${s.eyebrow}`}
-              style={{ "--d": "0.15s" } as React.CSSProperties}
-            >
+          {/* Acima da dobra não há rolagem para disparar nada: o grupo
+              inteiro entra assim que o controlador assume. */}
+          <div
+            ref={introRef}
+            className={s.intro}
+            data-anim-group="0.14"
+            data-anim-mode="load"
+            data-anim-delay="0.12"
+          >
+            <p className={s.eyebrow} data-anim="up">
               Feito para dar fome
             </p>
-            <h1
-              className={`enter enter--blur ${s.title}`}
-              id="hero-title"
-              style={{ "--d": "0.25s" } as React.CSSProperties}
-            >
+            <h1 className={s.title} id="hero-title" data-anim="chars">
               <em>Pizza &amp;</em>
               Burger
             </h1>
-            <p
-              className={`enter ${s.lead}`}
-              style={{ "--d": "0.62s" } as React.CSSProperties}
-            >
+            <p className={s.lead} data-anim="up">
               Role a página e monte, camada por camada, o hambúrguer que sai
               da nossa chapa.
             </p>
-            <a
-              className={`btn enter ${s.cta}`}
-              href="#pedir"
-              style={{ "--d": "0.76s" } as React.CSSProperties}
-            >
+            <a className={`btn ${s.cta}`} href="#pedir" data-anim="up">
               Pedir Agora
             </a>
           </div>
 
           {!reduced &&
             SCENES.map((item, i) => (
-              <article
+              <div
                 key={item.id}
-                className={s.card}
+                ref={(el) => {
+                  sceneRefs.current[i] = el;
+                }}
+                className={s.scene}
+                data-anim-replay=""
                 data-on={i === active ? "" : undefined}
                 aria-hidden={i === active ? undefined : "true"}
               >
-                <p className={s.step}>
-                  <span>{item.step}</span>
+                <p className={s.eyebrow} data-anim="up">
                   {item.kicker}
                 </p>
-                <h2 className={s.cardTitle}>{item.title}</h2>
-                <p className={s.cardText}>{item.text}</p>
+                <h2 className={s.sceneTitle} data-anim="chars">
+                  {item.accent && <em>{item.accent}</em>}
+                  {item.title}
+                </h2>
+                <p className={s.lead} data-anim="up" data-anim-delay="0.15">
+                  {item.text}
+                </p>
                 {item.cta && (
-                  <a className={`btn ${s.cardCta}`} href="#pedir">
+                  <a
+                    className={`btn ${s.cta}`}
+                    href="#pedir"
+                    data-anim="up"
+                    data-anim-delay="0.28"
+                  >
                     {item.cta}
                   </a>
                 )}
-              </article>
+              </div>
             ))}
         </div>
-
-        {!reduced && (
-          <div className={s.hud} aria-hidden="true">
-            <div className={s.track}>
-              <div ref={barRef} className={s.bar} />
-            </div>
-            <div className={s.meta}>
-              <span>
-                Camada {scene ? scene.step : "00"} / 0{SCENES.length}
-              </span>
-              <span className={s.hint}>
-                {ready ? "Role para montar ↓" : `Preparando a chapa… ${pct}%`}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       <TornEdge className={s.tear} variant="A" color="var(--cream)" height={58} />
