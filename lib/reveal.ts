@@ -24,16 +24,40 @@ export const PRESETS: Record<string, gsap.TweenVars> = {
   pop: { opacity: 0, scale: 0.55, rotate: -14 },
   /* Fotografia grande: sobe da mesa e assenta. */
   rise: { opacity: 0, y: 64, scale: 0.93 },
+  /* Entrada longa, vinda de fora da faixa: a peça parte inteira abaixo da
+     borda de baixo e sobe até o lugar. A viagem é em `yPercent`, e não em
+     pixels, porque cada peça precisa descer a própria altura para sumir.
+     170% é o que atende o caso mais apertado — no celular a faixa encolhe
+     mais depressa do que as peças dentro dela —, com folga para a sombra
+     projetada sair de cena junto. */
+  deal: { opacity: 0, yPercent: 170, scale: 0.97 },
 };
 
 /** Estado final por preset — só o que precisa voltar ao repouso. */
-export const REST: gsap.TweenVars = { opacity: 1, x: 0, y: 0, scale: 1, rotate: 0 };
+export const REST: gsap.TweenVars = {
+  opacity: 1,
+  x: 0,
+  y: 0,
+  /* Zera também o deslocamento proporcional, que o `deal` usa no lugar do
+     `y` em pixels. Para os outros presets é um zero inofensivo. */
+  yPercent: 0,
+  scale: 1,
+  rotate: 0,
+};
 
-export const DURATIONS: Record<string, number> = { pop: 0.75, rise: 1, chars: 0.55 };
+export const DURATIONS: Record<string, number> = {
+  pop: 0.75,
+  rise: 1,
+  chars: 0.55,
+  /* Percurso longo pede mais tempo: rápido demais vira estalo, não entrada. */
+  deal: 1.45,
+};
 export const EASES: Record<string, string> = {
   pop: "back.out(2)",
   rise: "power3.out",
   chars: "power3.out",
+  /* Arranca depressa lá de baixo e vai assentando no fim do caminho. */
+  deal: "power3.out",
 };
 
 /** Cascata entre caracteres de um título e entre elementos avulsos. */

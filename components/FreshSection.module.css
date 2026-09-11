@@ -5,6 +5,9 @@
   text-align: center;
   overflow: hidden;
   isolation: isolate;
+
+  /* Curva de oscilação: a mesma senoide suave para as três flutuações. */
+  --sine: cubic-bezier(0.37, 0, 0.63, 1);
 }
 
 .inner {
@@ -33,13 +36,93 @@
   font-size: 12.5px;
 }
 
-/* Ingredientes editoriais nas bordas */
-.orange1 { left: 4%;  top: 46%; width: 6.6%;  --rot: -14deg; }
-.chili1  { left: 13%; top: 34%; width: 4.4%;  --rot: 24deg; }
-.leaf1   { left: 8%;  top: 78%; width: 4.6%;  --rot: 12deg; }
-.orange2 { right: 3%; top: 12%; width: 7.4%;  --rot: 18deg; }
-.chili2  { right: 14%; top: 20%; width: 4.2%; --rot: -30deg; }
-.leaf2   { right: 6%; top: 72%; width: 4.4%;  --rot: -18deg; }
+/* ============================================================
+   FLUTUAÇÃO CONTÍNUA DOS RECORTES
+
+   Três animações por recorte, cada uma numa propriedade própria:
+   `translate` desenha um oval, `rotate` inclina, `scale` respira.
+   Como são propriedades independentes, elas se somam em vez de uma
+   sobrescrever a outra — e nenhuma toca o `transform`, que continua
+   reservado à animação de entrada em GSAP (ver PageMotion.tsx).
+
+   Os três períodos são propositalmente desencontrados: o ciclo
+   completo da soma só fecha depois de minutos, então o olho nunca
+   pega o laço e o movimento parece nunca se repetir.
+   ============================================================ */
+.float {
+  /* Sem animação (reduced motion) o recorte fica na inclinação de repouso. */
+  rotate: var(--rot, 0deg);
+  will-change: translate, rotate, scale;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .float {
+    animation:
+      floatPath var(--t-path, 17s) var(--sine) var(--o-path, 0s) infinite,
+      floatTilt var(--t-tilt, 11s) var(--sine) var(--o-tilt, 0s) infinite,
+      floatBreath var(--t-breath, 13s) var(--sine) var(--o-breath, 0s) infinite;
+  }
+}
+
+/* O deslocamento horizontal está defasado do vertical em um quarto de
+   ciclo: é essa defasagem que transforma o sobe-e-desce num oval. */
+@keyframes floatPath {
+  0%   { translate: 0 0; }
+  25%  { translate: var(--ax, 5px) calc(var(--ay, 9px) * -0.62); }
+  50%  { translate: 0 calc(var(--ay, 9px) * -1); }
+  75%  { translate: calc(var(--ax, 5px) * -1) calc(var(--ay, 9px) * -0.62); }
+  100% { translate: 0 0; }
+}
+
+@keyframes floatTilt {
+  0%, 100% { rotate: calc(var(--rot, 0deg) - var(--ar, 2deg)); }
+  50%      { rotate: calc(var(--rot, 0deg) + var(--ar, 2deg)); }
+}
+
+@keyframes floatBreath {
+  0%, 100% { scale: 1; }
+  50%      { scale: var(--as, 1.015); }
+}
+
+/* Ingredientes editoriais nas bordas.
+   Peça grande recebe amplitude menor: o que conta é o deslocamento que o
+   olho vê, e ele cresce junto com o tamanho aparente do recorte. */
+.orange1 {
+  left: 4%; top: 46%; width: 6.6%; --rot: -14deg;
+  --ax: 6px; --ay: 10px; --ar: 2.2deg; --as: 1.016;
+  --t-path: 19s; --t-tilt: 12s; --t-breath: 15s;
+  --o-path: -2s; --o-tilt: -5s; --o-breath: -9s;
+}
+.chili1 {
+  left: 13%; top: 34%; width: 4.4%; --rot: 24deg;
+  --ax: 8px; --ay: 13px; --ar: 3deg; --as: 1.022;
+  --t-path: 15s; --t-tilt: 10s; --t-breath: 12s;
+  --o-path: -7s; --o-tilt: -1s; --o-breath: -4s;
+}
+.leaf1 {
+  left: 8%; top: 78%; width: 4.6%; --rot: 12deg;
+  --ax: 7px; --ay: 12px; --ar: 3.4deg; --as: 1.02;
+  --t-path: 17s; --t-tilt: 13s; --t-breath: 11s;
+  --o-path: -11s; --o-tilt: -8s; --o-breath: -2s;
+}
+.orange2 {
+  right: 3%; top: 12%; width: 7.4%; --rot: 18deg;
+  --ax: 5px; --ay: 9px; --ar: 2deg; --as: 1.014;
+  --t-path: 21s; --t-tilt: 14s; --t-breath: 17s;
+  --o-path: -13s; --o-tilt: -3s; --o-breath: -12s;
+}
+.chili2 {
+  right: 14%; top: 20%; width: 4.2%; --rot: -30deg;
+  --ax: 9px; --ay: 14px; --ar: 2.8deg; --as: 1.02;
+  --t-path: 16s; --t-tilt: 11s; --t-breath: 13s;
+  --o-path: -5s; --o-tilt: -9s; --o-breath: -6s;
+}
+.leaf2 {
+  right: 6%; top: 72%; width: 4.4%; --rot: -18deg;
+  --ax: 7px; --ay: 12px; --ar: 3.6deg; --as: 1.022;
+  --t-path: 18s; --t-tilt: 9s; --t-breath: 14s;
+  --o-path: -9s; --o-tilt: -6s; --o-breath: -1s;
+}
 
 @media (max-width: 700px) {
   .fresh { padding: 14px 0 22px; }
@@ -51,4 +134,7 @@
   .orange2 { right: -4%; top: 6%; width: 14%; }
   .chili2  { right: 3%;  top: 68%; width: 7%; }
   .leaf2   { display: none; }
+
+  /* Recortes maiores e tela menor: a mesma amplitude pesaria demais. */
+  .float { --ax: 4px; --ay: 7px; --ar: 1.6deg; --as: 1.012; }
 }

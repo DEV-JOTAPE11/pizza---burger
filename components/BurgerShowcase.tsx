@@ -18,6 +18,12 @@ const DECOR = [
   { cls: "leafL", src: "/assets/leaf-2.png", w: 360, h: 300, drift: "drift--c" },
 ] as const;
 
+/* A faixa inteira só começa a se montar quando a borda de baixo já entrou
+   na tela. É o que dá tempo de ver os hambúrgueres subindo: eles partem de
+   baixo da faixa, e se o gatilho fosse no topo a viagem aconteceria fora
+   do campo de visão. */
+const START = "bottom 92%";
+
 export default function BurgerShowcase() {
   return (
     <section className={s.show} aria-label="Nossos hambúrgueres">
@@ -25,10 +31,9 @@ export default function BurgerShowcase() {
 
       <TornEdge className={s.tearTop} variant="B" color="var(--cream)" height={52} flip />
 
-      {/* Um gatilho só para a faixa inteira: os hambúrgueres sobem em
-          cascata e os recortes brotam logo depois. */}
-      <div className="stage" data-anim-group="0.13">
-      {DECOR.map((d, i) => (
+      {/* Os recortes brotam depois que os hambúrgueres assentam. */}
+      <div className="stage" data-anim-group="0.13" data-anim-start={START} data-anim-delay="0.6">
+      {DECOR.map((d) => (
         <Image
           key={d.cls}
           className={`floater drift ${d.drift} ${s[d.cls]}`}
@@ -39,13 +44,16 @@ export default function BurgerShowcase() {
           aria-hidden="true"
           loading="lazy"
           data-anim="pop"
-          /* O atraso do primeiro da família vale para a família toda. */
-          data-anim-delay={i === 0 ? "0.35" : undefined}
         />
       ))}
+      </div>
 
+      {/* Os hambúrgueres sobem de baixo da faixa, um atrás do outro, da
+          esquerda para a direita. Passam por trás da borda rasgada de baixo,
+          que tem z-index maior: é ela que "esconde" a chegada. */}
+      <div className="stage" data-anim-group="0.14" data-anim-start={START}>
       {BURGERS.map((b) => (
-        <div key={b.cls} className={`${s.burger} ${s[b.cls]}`} data-anim="rise">
+        <div key={b.cls} className={`${s.burger} ${s[b.cls]}`} data-anim="deal">
           <Image src={b.src} alt={b.alt} width={b.w} height={b.h} loading="lazy" sizes="40vw" />
         </div>
       ))}
